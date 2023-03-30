@@ -10,7 +10,7 @@ import {FlatpeakService} from '@flat-peak/javascript-sdk';
 export async function connectTariff( appParams, providerHooks, credentials, inputParams) {
   const {publishable_key, customer_id, product_id, tariff: providerTariff} = inputParams;
   const {api_url, provider_id, logger} = appParams;
-  const {adoptTariff} = providerHooks;
+  const {convert} = providerHooks;
 
   const service = new FlatpeakService(api_url, publishable_key, (message) => {
     if (logger) {
@@ -19,7 +19,7 @@ export async function connectTariff( appParams, providerHooks, credentials, inpu
   },
   );
 
-  const tariffDraft = /** @type {Tariff} */ adoptTariff(providerTariff);
+  const tariffDraft = /** @type {Tariff} */ convert(providerTariff);
   const customer = await throwIfError((customer_id ? service.getCustomer(customer_id) : service.createCustomer({})));
   let product = await throwIfError((product_id ? service.getProduct(product_id) : service.createProduct({
     customer_id: customer.id,

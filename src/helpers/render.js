@@ -100,7 +100,7 @@ export function captureInputParams(req, res, appParams, providerHooks, inputPara
  */
 export function captureAuthMetaData(req, res, providerHooks, credentials) {
   providerHooks
-      .validateCredentials(credentials)
+      .authorise(credentials)
       .then(({success, error, ...rest}) => {
         if (error) {
           req.session.last_error = error;

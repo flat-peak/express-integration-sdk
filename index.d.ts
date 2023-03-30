@@ -32,9 +32,9 @@ interface TariffResponse<T> {
 }
 
 interface ProviderHooks<T> {
-	validateCredentials: (credentials: Object) => Promise<CredentialsResponse>;
-	fetchTariff: (reference: CredentialsReference) => Promise<TariffResponse<T>>;
-	adoptTariff: (tariff: T) => Promise<Tariff>;
+	authorise: (credentials: Object) => Promise<CredentialsResponse>;
+	capture: (reference: CredentialsReference) => Promise<TariffResponse<T>>;
+	convert: (tariff: T) => Promise<Tariff>;
 	logger?: {
 		info: (message: string) => void;
 		error: (message: string) => void;

@@ -86,12 +86,12 @@ export function integrateProvider(params) {
 
     try {
       providerHooks
-          .validateCredentials(credentials)
+          .authorise(credentials)
           .then(({error, ...reference}) => {
             if (error) {
               throw new Error(error);
             }
-            return providerHooks.fetchTariff(reference);
+            return providerHooks.capture(reference);
           })
           .then(({tariff, error}) => {
             if (error) {
@@ -142,12 +142,12 @@ export function integrateProvider(params) {
     }
     const {data: credentials, reference_id} = auth_metadata;
     try {
-      providerHooks.validateCredentials(credentials)
+      providerHooks.authorise(credentials)
           .then(({error, ...reference}) => {
             if (error) {
               throw new Error(error);
             }
-            return providerHooks.fetchTariff({
+            return providerHooks.capture({
               ...reference, ...(reference_id && {reference_id}),
             });
           })
@@ -155,7 +155,7 @@ export function integrateProvider(params) {
             if (error) {
               throw new Error(error);
             }
-            res.send(providerHooks.adoptTariff(tariff));
+            res.send(providerHooks.convert(tariff));
           })
           .then((result) => res.send(result))
           .catch((e) => {
