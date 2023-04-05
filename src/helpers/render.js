@@ -102,8 +102,8 @@ export function captureAuthMetaData(req, res, providerHooks, credentials) {
   providerHooks
       .authorise(credentials)
       .then(({success, error, ...rest}) => {
-        if (error) {
-          req.session.last_error = error;
+        if (error || !success) {
+          req.session.last_error = error || 'Authorisation failed';
           res.redirect('/auth');
           return;
         }
