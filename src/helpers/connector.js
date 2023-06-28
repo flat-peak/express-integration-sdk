@@ -8,7 +8,7 @@ import {FlatpeakService} from '@flat-peak/javascript-sdk';
  * @param {InputParams} inputParams
  */
 export async function connectTariff( appParams, providerHooks, credentials, inputParams) {
-  const {publishable_key, customer_id, product_id, tariff: providerTariff} = inputParams;
+  const {publishable_key, customer_id, product_id, tariff: providerTariff, postal_address} = inputParams;
   const {api_url, provider_id, logger} = appParams;
   const {convert} = providerHooks;
 
@@ -42,6 +42,7 @@ export async function connectTariff( appParams, providerHooks, credentials, inpu
         'data': credentials,
       },
     },
+    ...(postal_address && {postal_address: postal_address}),
   }));
 
   return {
