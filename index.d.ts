@@ -1,6 +1,5 @@
 import {RequestHandler} from 'express';
 import {FlatPeak} from "@flat-peak/javascript-sdk";
-import Tariff = FlatPeak.Tariff;
 
 interface InputParams<T> {
 	publishable_key: string;
@@ -8,6 +7,7 @@ interface InputParams<T> {
 	customer_id: string;
 	callback_url: string;
 	tariff?: T;
+	postal_address?: FlatPeak.PostalAddress;
 }
 
 interface AppParams {
@@ -34,7 +34,7 @@ interface TariffResponse<T> {
 interface ProviderHooks<T> {
 	authorise: (credentials: Object) => Promise<CredentialsResponse>;
 	capture: (reference: CredentialsReference) => Promise<TariffResponse<T>>;
-	convert: (tariff: T) => Promise<Tariff>;
+	convert: (tariff: T) => Promise<FlatPeak.Tariff>;
 	logger?: {
 		info: (message: string) => void;
 		error: (message: string) => void;

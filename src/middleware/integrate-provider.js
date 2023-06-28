@@ -93,7 +93,7 @@ export function integrateProvider(params) {
             }
             return providerHooks.capture(reference);
           })
-          .then(({tariff, error}) => {
+          .then(({tariff, postal_address, error}) => {
             if (error) {
               throw new Error(error);
             }
@@ -103,6 +103,7 @@ export function integrateProvider(params) {
               customer_id,
               callback_url,
               tariff,
+              postal_address,
             });
           })
           .then((result) => {
