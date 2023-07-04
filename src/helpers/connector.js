@@ -36,7 +36,7 @@ export async function connectTariff( appParams, providerHooks, credentials, inpu
     'tariff_settings': {
       'reference_id': tariffDraft.reference_id,
       'display_name': tariff.display_name,
-      'is_enabled': true,
+      'is_disabled': false,
       'integrated': true,
       'tariff_id': tariff.id,
       'auth_metadata': {
