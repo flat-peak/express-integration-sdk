@@ -16,15 +16,17 @@ export async function connectTariff( appParams, providerHooks, credentials, inpu
     if (logger) {
       logger.info(`[SERVICE] ${message}`);
     }
-  },
-  );
+  });
 
   const tariffDraft = /** @type {Tariff} */ convert(providerTariff);
-  const customer = await throwIfError((customer_id ? service.getCustomer(customer_id) : service.createCustomer({})));
+  const customer = await throwIfError((customer_id ? service.getCustomer(customer_id) : service.createCustomer({
+    is_disabled: true,
+  })));
   let product = await throwIfError((product_id ? service.getProduct(product_id) : service.createProduct({
     customer_id: customer.id,
     provider_id: provider_id,
     timezone: tariffDraft.timezone,
+    is_disabled: true,
   })));
   tariffDraft.product_id = product.id;
 

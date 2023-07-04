@@ -44,6 +44,7 @@ interface ProviderHooks<T> {
 interface OnboardPage {
 	view: string;
 	title: string;
+	params?: Record<string, string>
 }
 
 interface OnboardPages {

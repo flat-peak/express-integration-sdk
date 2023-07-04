@@ -27,7 +27,10 @@ export function integrateProvider(params) {
       });
     }
     // capture input params from javascript context
-    res.render(pages.index.view, {title: pages.index.title});
+    res.render(pages.index.view, {
+      title: pages.index.title,
+      ...(pages.index.hasOwnProperty('params') && pages.index.params),
+    });
   });
 
   // capture input params from POST payload
@@ -46,6 +49,7 @@ export function integrateProvider(params) {
     res.render(pages.auth.view, {
       title: pages.auth.title,
       ...populateTemplate(req.session),
+      ...(pages.auth.hasOwnProperty('params') && pages.auth.params),
     });
   });
 
@@ -69,6 +73,7 @@ export function integrateProvider(params) {
     res.render('share', {
       title: 'Share your tariff',
       ...populateTemplate(req.session),
+      ...(pages.share.hasOwnProperty('params') && pages.share.params),
     });
   });
 
