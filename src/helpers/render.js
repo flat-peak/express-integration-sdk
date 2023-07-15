@@ -55,7 +55,7 @@ export function populateTemplate({last_error, callback_url, account, provider}) 
 export function captureInputParams(req, res, appParams, providerHooks, inputParams) {
   const {api_url, provider_id} = appParams;
   const {logger} = providerHooks;
-  const {publishable_key, product_id, customer_id, callback_url} = inputParams;
+  const {publishable_key, product_id, customer_id, callback_url, provider_id: requested_provider_id} = inputParams;
 
   if (!publishable_key) {
     respondWithError(req, res, 'Publishable key is required to proceed');
@@ -71,7 +71,7 @@ export function captureInputParams(req, res, appParams, providerHooks, inputPara
 
   Promise.all([
     service.getAccount(),
-    service.getProvider(provider_id),
+    service.getProvider(provider_id || requested_provider_id),
   ]).then(([account, provider]) => {
     if (account.object === 'error') {
       respondWithError(req, res, account.message);

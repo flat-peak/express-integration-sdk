@@ -18,12 +18,13 @@ export function integrateProvider(params) {
     const {
       'publishable-key': publishable_key,
       'product-id': product_id,
+      'provider-id': provider_id,
       'customer-id': customer_id,
       'callback-url': callback_url,
     } = req.headers;
     if (publishable_key) { // capture input params from headers
       return captureInputParams(req, res, appParams, providerHooks, {
-        publishable_key, product_id, customer_id, callback_url,
+        publishable_key, product_id, provider_id, customer_id, callback_url,
       });
     }
     // capture input params from javascript context
@@ -35,8 +36,8 @@ export function integrateProvider(params) {
 
   // capture input params from POST payload
   router.post('/', function(req, res, next) {
-    const {publishable_key: publishable_key, product_id, customer_id, callback_url} = req.body;
-    captureInputParams(req, res, appParams, providerHooks, {publishable_key, product_id, customer_id, callback_url});
+    const {publishable_key: publishable_key, product_id, provider_id, customer_id, callback_url} = req.body;
+    captureInputParams(req, res, appParams, providerHooks, {publishable_key, product_id, provider_id, customer_id, callback_url});
   });
 
   router.get('/auth', function(req, res, next) {
@@ -87,7 +88,7 @@ export function integrateProvider(params) {
       return;
     }
 
-    const {auth_metadata: credentials, publishable_key: publishable_key, product_id, customer_id, callback_url} = req.session;
+    const {auth_metadata: credentials, publishable_key: publishable_key, product_id, provider_id, customer_id, callback_url} = req.session;
 
     try {
       providerHooks
@@ -105,6 +106,7 @@ export function integrateProvider(params) {
             return connectTariff(appParams, providerHooks, credentials, {
               publishable_key,
               product_id,
+              provider_id,
               customer_id,
               callback_url,
               tariff,
