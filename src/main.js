@@ -1,9 +1,10 @@
 import {integrateProvider} from './middleware/integrate-provider';
 import {errorHandler} from './middleware/error-handler';
-import {respondWithError} from './helpers/render';
+import {respondWithError, populateTemplate} from './helpers/render';
 
 export {
   integrateProvider,
   errorHandler,
-  respondWithError
+  respondWithError,
+  populateTemplate,
 };

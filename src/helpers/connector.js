@@ -8,7 +8,14 @@ import {FlatpeakService} from '@flat-peak/javascript-sdk';
  * @param {InputParams} inputParams
  */
 export async function connectTariff( appParams, providerHooks, credentials, inputParams) {
-  const {publishable_key, customer_id, product_id, tariff: providerTariff, postal_address} = inputParams;
+  const {
+    publishable_key,
+    customer_id,
+    product_id,
+    tariff: providerTariff,
+    postal_address,
+    provider_id: requested_provider_id,
+  } = inputParams;
   const {api_url, provider_id, logger} = appParams;
   const {convert} = providerHooks;
 
@@ -24,7 +31,7 @@ export async function connectTariff( appParams, providerHooks, credentials, inpu
   })));
   let product = await throwIfError((product_id ? service.getProduct(product_id) : service.createProduct({
     customer_id: customer.id,
-    provider_id: provider_id,
+    provider_id: provider_id || requested_provider_id,
     timezone: tariffDraft.timezone,
     is_disabled: true,
   })));

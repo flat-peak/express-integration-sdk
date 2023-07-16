@@ -88,7 +88,7 @@ export function integrateProvider(params) {
       return;
     }
 
-    const {auth_metadata: credentials, publishable_key: publishable_key, product_id, provider_id, customer_id, callback_url} = req.session;
+    const {auth_metadata: credentials, publishable_key: publishable_key, product_id, provider, customer_id, callback_url} = req.session;
 
     try {
       providerHooks
@@ -106,7 +106,7 @@ export function integrateProvider(params) {
             return connectTariff(appParams, providerHooks, credentials, {
               publishable_key,
               product_id,
-              provider_id,
+              provider_id: provider.id,
               customer_id,
               callback_url,
               tariff,
