@@ -40,17 +40,26 @@ export function integrateProvider(params) {
     captureInputParams(req, res, appParams, providerHooks, {publishable_key, product_id, provider_id, customer_id, callback_url});
   });
 
-  router.get('/auth', function(req, res, next) {
+  router.get('/auth', async function(req, res, next) {
     if (!req.session || !req.session.account || !req.session.provider) {
       req.session.destroy();
       res.redirect('/');
       return;
     }
 
+    const sessionData = {...req.session};
+    req.session.last_error = undefined; // Clear error
+
     res.render(pages.auth.view, {
       title: pages.auth.title,
-      ...populateTemplate(req.session),
-      ...(pages.auth.hasOwnProperty('params') && pages.auth.params),
+      ...populateTemplate(sessionData),
+      ...(pages.auth.hasOwnProperty('params') &&
+          (
+            typeof pages.auth.params === 'function' ?
+              await pages.auth.params(req) :
+              pages.auth.params
+          )
+      ),
     });
   });
 
@@ -62,7 +71,7 @@ export function integrateProvider(params) {
     captureAuthMetaData(req, res, providerHooks, req.body);
   });
 
-  router.get('/share', function(req, res, next) {
+  router.get('/share', async function(req, res, next) {
     if (!req.session || !req.session.account) {
       res.redirect('/');
       return;
@@ -74,7 +83,13 @@ export function integrateProvider(params) {
     res.render('share', {
       title: 'Share your tariff',
       ...populateTemplate(req.session),
-      ...(pages.share.hasOwnProperty('params') && pages.share.params),
+      ...(pages.share.hasOwnProperty('params') &&
+        (
+          typeof pages.share.params === 'function' ?
+            await pages.share.params(req) :
+            pages.share.params
+        )
+      ),
     });
   });
 

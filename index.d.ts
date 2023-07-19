@@ -1,5 +1,5 @@
-import {RequestHandler} from 'express';
-import {FlatPeak} from "@flat-peak/javascript-sdk";
+import type {RequestHandler, Request} from 'express';
+import type {FlatPeak} from "@flat-peak/javascript-sdk";
 
 interface InputParams<T> {
 	publishable_key: string;
@@ -44,7 +44,7 @@ interface ProviderHooks<T> {
 interface OnboardPage {
 	view: string;
 	title: string;
-	params?: Record<string, string>
+	params?: Record<string, string> | ((req: Request) => Promise<Record<string, string>>)
 }
 
 interface OnboardPages {

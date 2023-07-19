@@ -114,6 +114,7 @@ export function captureAuthMetaData(req, res, providerHooks, credentials) {
 }
 
 export function respondWithError(req, res, error) {
+  req.session.destroy();
   res.render('error', {
     title: 'Error',
     error: error,
