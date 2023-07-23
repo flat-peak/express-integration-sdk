@@ -2,6 +2,37 @@ import {Router} from 'express';
 import {connectTariff} from '../helpers/connector';
 import {captureAuthMetaData, captureInputParams, populateTemplate, respondWithError} from '../helpers/render';
 
+function parseInputParams(req) {
+  const sessionData = req.headers.state || req.body.state || req.query.state;
+  if (sessionData) {
+    try {
+      return JSON.parse(Buffer.from(sessionData, 'base64').toString('utf8'));
+    } catch (e) {
+      console.log('Failed to parse session data');
+      console.log(e);
+      return {};
+    }
+  }
+
+  // Fallback for backward compatibility
+  if (req.body['publishable_key']) {
+    return req.body;
+  }
+
+  // Fallback for backward compatibility
+  if (req.headers['publishable-key']) {
+    return {
+      'publishable-key': publishable_key,
+      'product-id': product_id,
+      'provider-id': provider_id,
+      'customer-id': customer_id,
+      'callback-url': callback_url,
+    } = req.headers;
+  }
+
+  return {};
+}
+
 /**
  * Returns a router with two routes /login and /callback
  *
@@ -16,15 +47,17 @@ export function integrateProvider(params) {
 
   router.get('/', function(req, res, next) {
     const {
-      'publishable-key': publishable_key,
-      'product-id': product_id,
-      'provider-id': provider_id,
-      'customer-id': customer_id,
-      'callback-url': callback_url,
-    } = req.headers;
+      publishable_key,
+      product_id,
+      provider_id,
+      customer_id,
+      callback_url,
+      postal_address,
+    } = parseInputParams(req);
+
     if (publishable_key) { // capture input params from headers
       return captureInputParams(req, res, appParams, providerHooks, {
-        publishable_key, product_id, provider_id, customer_id, callback_url,
+        publishable_key, product_id, provider_id, customer_id, callback_url, postal_address,
       });
     }
     // capture input params from javascript context
@@ -36,8 +69,7 @@ export function integrateProvider(params) {
 
   // capture input params from POST payload
   router.post('/', function(req, res, next) {
-    const {publishable_key: publishable_key, product_id, provider_id, customer_id, callback_url} = req.body;
-    captureInputParams(req, res, appParams, providerHooks, {publishable_key, product_id, provider_id, customer_id, callback_url});
+    captureInputParams(req, res, appParams, providerHooks, parseInputParams(req));
   });
 
   router.get('/auth', async function(req, res, next) {
@@ -103,7 +135,15 @@ export function integrateProvider(params) {
       return;
     }
 
-    const {auth_metadata: credentials, publishable_key: publishable_key, product_id, provider, customer_id, callback_url} = req.session;
+    const {
+      auth_metadata: credentials,
+      publishable_key,
+      product_id,
+      provider,
+      customer_id,
+      callback_url,
+      postal_address: input_postal_address,
+    } = req.session;
 
     try {
       providerHooks
@@ -125,7 +165,7 @@ export function integrateProvider(params) {
               customer_id,
               callback_url,
               tariff,
-              postal_address,
+              postal_address: postal_address || input_postal_address,
             });
           })
           .then((result) => {
