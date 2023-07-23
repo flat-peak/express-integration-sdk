@@ -21,13 +21,15 @@ function parseInputParams(req) {
 
   // Fallback for backward compatibility
   if (req.headers['publishable-key']) {
-    return {
+    const {
       'publishable-key': publishable_key,
       'product-id': product_id,
       'provider-id': provider_id,
       'customer-id': customer_id,
       'callback-url': callback_url,
     } = req.headers;
+
+    return {publishable_key, product_id, provider_id, customer_id, callback_url};
   }
 
   return {};

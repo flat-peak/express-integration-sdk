@@ -47,7 +47,7 @@
     "typescript": "^4.8.4"
   },
   "dependencies": {
-    "@flat-peak/javascript-sdk": "^1.0.7"
+    "@flat-peak/javascript-sdk": "1.2.0"
   },
   "directories": {
     "lib": "lib"
