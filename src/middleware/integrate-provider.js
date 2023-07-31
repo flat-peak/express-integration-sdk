@@ -55,11 +55,12 @@ export function integrateProvider(params) {
       customer_id,
       callback_url,
       postal_address,
+      geo_location,
     } = parseInputParams(req);
 
     if (publishable_key) { // capture input params from headers
       return captureInputParams(req, res, appParams, providerHooks, {
-        publishable_key, product_id, provider_id, customer_id, callback_url, postal_address,
+        publishable_key, product_id, provider_id, customer_id, callback_url, postal_address, geo_location,
       });
     }
     // capture input params from javascript context
@@ -145,6 +146,7 @@ export function integrateProvider(params) {
       customer_id,
       callback_url,
       postal_address: input_postal_address,
+      geo_location,
     } = req.session;
 
     try {
@@ -168,6 +170,7 @@ export function integrateProvider(params) {
               callback_url,
               tariff,
               postal_address: postal_address || input_postal_address,
+              geo_location,
             });
           })
           .then((result) => {

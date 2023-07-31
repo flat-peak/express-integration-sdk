@@ -14,6 +14,7 @@ export async function connectTariff( appParams, providerHooks, credentials, inpu
     product_id,
     tariff: providerTariff,
     postal_address,
+    geo_location,
     provider_id: requested_provider_id,
   } = inputParams;
   const {api_url, provider_id, logger} = appParams;
@@ -39,6 +40,10 @@ export async function connectTariff( appParams, providerHooks, credentials, inpu
 
   const tariff = await throwIfError(service.createTariff(tariffDraft));
 
+  const validGeoLocation = Array.isArray(geo_location) &&
+    (geo_location.length === 2) &&
+    geo_location.every((entry) => typeof entry === 'number');
+
   product = await throwIfError(service.updateProduct(product.id, {
     'tariff_settings': {
       'reference_id': tariffDraft.reference_id,
@@ -52,6 +57,7 @@ export async function connectTariff( appParams, providerHooks, credentials, inpu
       },
     },
     ...(postal_address && {postal_address: postal_address}),
+    ...(validGeoLocation && {geo_location: geo_location}),
   }));
 
   return {

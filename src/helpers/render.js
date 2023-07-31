@@ -55,7 +55,7 @@ export function populateTemplate({last_error, callback_url, account, provider}) 
 export function captureInputParams(req, res, appParams, providerHooks, inputParams) {
   const {api_url, provider_id} = appParams;
   const {logger} = providerHooks;
-  const {publishable_key, product_id, customer_id, callback_url, provider_id: requested_provider_id, postal_address} = inputParams;
+  const {publishable_key, product_id, customer_id, callback_url, provider_id: requested_provider_id, postal_address, geo_location} = inputParams;
 
   if (!publishable_key) {
     respondWithError(req, res, 'Publishable key is required to proceed');
@@ -89,6 +89,7 @@ export function captureInputParams(req, res, appParams, providerHooks, inputPara
     req.session.customer_id = customer_id;
     req.session.callback_url = callback_url;
     req.session.postal_address = postal_address;
+    req.session.geo_location = geo_location;
     res.redirect('/auth');
   });
 }
