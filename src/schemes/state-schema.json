@@ -1,0 +1,97 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "object",
+  "properties": {
+    "request_id": {
+      "type": "string"
+    },
+    "callback_url": {
+      "type": "string"
+    },
+    "customer": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "reference_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "reference_id"
+      ]
+    },
+    "product_id": {
+      "type": "string"
+    },
+    "provider_id": {
+      "type": "string"
+    },
+    "timezone": {
+      "type": "string"
+    },
+    "postal_address": {
+      "type": "object",
+      "properties": {
+        "address_line1": {
+          "type": "string"
+        },
+        "address_line2": {
+          "type": "string"
+        },
+        "city": {
+          "type": "string"
+        },
+        "state": {
+          "type": "string"
+        },
+        "post_code": {
+          "type": "string"
+        },
+        "country_code": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "country_code"
+      ]
+    },
+    "geo_location": {
+      "type": "array",
+      "items": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "number"
+        }
+      ]
+    },
+    "devices": {
+      "type": "array",
+      "items": [
+        {
+          "type": "object",
+          "properties": {
+            "mac": {
+              "type": "string"
+            },
+            "reference_id": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "mac",
+            "reference_id"
+          ]
+        }
+      ]
+    }
+  },
+  "required": [
+    "postal_address",
+    "provider_id"
+  ]
+}

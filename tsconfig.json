@@ -1,11 +1,16 @@
 {
-  "include": ["src/main.js"],
+  "include": ["src/index.ts"],
   "compilerOptions": {
     "allowJs": true,
-    "declaration": true,
-    "emitDeclarationOnly": true,
-    "outDir": "@types",
+    "outDir": "lib",
     "declarationMap": false,
-    "target": "ES2015"
+    "target": "ES2015",
+    "module": "ES2020",
+    "strict": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "moduleResolution": "node",
+    "baseUrl": "./",
+	"resolveJsonModule": true,
   },
 }
