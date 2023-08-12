@@ -31,9 +31,16 @@ export interface TariffResponse<T> {
 export interface ProviderHooks<T> {
   authorise: (
     credentials: NonNullable<unknown>,
+    params?: { state?: SharedStateData },
   ) => Promise<CredentialsResponse>;
-  capture: (reference: CredentialsReference) => Promise<TariffResponse<T>>;
-  convert: (tariff: T) => Tariff & { reference_id?: string };
+  capture: (
+    reference: CredentialsReference,
+    params?: { state?: SharedStateData },
+  ) => Promise<TariffResponse<T>>;
+  convert: (
+    tariff: T,
+    params?: { state?: SharedStateData },
+  ) => Tariff & { reference_id?: string };
   logger?: {
     info: (message: string) => void;
     error: (message: string) => void;

@@ -90,7 +90,8 @@ export function integrateProvider<T extends NonNullable<unknown>>(
   });
 
   router.post("/share/capture", authMiddleware, (req, res) => {
-    const credentials = res.locals.state.getData().auth_metadata;
+    const stateData = res.locals.state.getData();
+    const credentials = stateData.auth_metadata;
     if (!credentials) {
       return respondWithRedirect(req, res, {
         uri: "/auth",
@@ -101,12 +102,12 @@ export function integrateProvider<T extends NonNullable<unknown>>(
 
     try {
       return providerHooks
-        .authorise(credentials)
+        .authorise(credentials, { state: stateData })
         .then(({ error, ...reference }) => {
           if (error) {
             throw new Error(error);
           }
-          return providerHooks.capture(reference);
+          return providerHooks.capture(reference, { state: stateData });
         })
         .then(({ tariff, postal_address, error }) => {
           if (error) {
@@ -114,7 +115,7 @@ export function integrateProvider<T extends NonNullable<unknown>>(
           }
           return connectTariff<T>(appParams, providerHooks, {
             publicKey: res.locals.state.getPublicKey(),
-            state: res.locals.state.getData(),
+            state: stateData,
             tariff,
             postal_address,
           });

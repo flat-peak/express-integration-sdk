@@ -8,6 +8,7 @@ const InputSharedStateKeys = [
   "callback_url",
   "postal_address",
   "geo_location",
+  "client_metadata",
 ];
 
 const GeneratedSharedStateKeys = ["request_id", "tariff_id"];
