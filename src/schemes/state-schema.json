@@ -91,7 +91,6 @@
     }
   },
   "required": [
-    "postal_address",
-    "provider_id"
+    "postal_address"
   ]
 }

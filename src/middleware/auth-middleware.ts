@@ -1,7 +1,7 @@
 import { FailureResponse, FlatpeakService } from "@flat-peak/javascript-sdk";
 import { v4 as uuidv4 } from "uuid";
 import { NextFunction, Response, Request } from "express";
-import { extractStateFromHeaders } from "../helpers/state-validator";
+import { decodeState } from "../helpers/state-validator";
 import { SharedState } from "../models/shared-state";
 import { respondWithError } from "../helpers/render";
 import { ConfigParams, SharedStateData } from "../types";
@@ -33,7 +33,7 @@ export function createAuthMiddleware<T>(params: ConfigParams<T>) {
 
     let rawStateInput = {} as SharedStateData;
     try {
-      rawStateInput = extractStateFromHeaders(inputState);
+      rawStateInput = decodeState(inputState);
     } catch (e) {
       logger?.error(e instanceof Error ? e.message : "Unknown error");
       res.status(400);
