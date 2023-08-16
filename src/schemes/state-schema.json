@@ -94,7 +94,6 @@
   },
   "required": [
     "postal_address",
-    "timezone",
-    "devices"
+    "timezone"
   ]
 }
