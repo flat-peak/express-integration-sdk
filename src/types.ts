@@ -74,6 +74,8 @@ export interface ConfigParams<T> {
 
 export interface SharedStateData {
   provider_id: string;
+  timezone: string;
+  devices: Array<{ mac: string; reference_id: string }>;
   product_id?: string;
   customer_id?: string;
   postal_address?: PostalAddress;

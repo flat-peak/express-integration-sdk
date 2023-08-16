@@ -83,14 +83,15 @@
             }
           },
           "required": [
-            "mac",
-            "reference_id"
+            "mac"
           ]
         }
       ]
     }
   },
   "required": [
-    "postal_address"
+    "postal_address",
+    "timezone",
+    "devices"
   ]
 }

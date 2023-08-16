@@ -9,6 +9,8 @@ const InputSharedStateKeys = [
   "postal_address",
   "geo_location",
   "client_metadata",
+  "devices",
+  "timezone",
 ];
 
 const GeneratedSharedStateKeys = ["request_id", "tariff_id"];
