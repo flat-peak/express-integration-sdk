@@ -39,6 +39,8 @@ export class SharedState {
     this.public_key = extractKeyFromHeaders(authorisation);
     this.data = {
       provider_id: "",
+      timezone: "",
+      devices: [],
     };
     this.extend(input);
     if (!this.data.request_id) {
