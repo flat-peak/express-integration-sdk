@@ -5,6 +5,9 @@
     "request_id": {
       "type": "string"
     },
+    "device_id": {
+      "type": "string"
+    },
     "callback_url": {
       "type": "string"
     },

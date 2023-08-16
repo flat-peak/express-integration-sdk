@@ -13,7 +13,7 @@ const InputSharedStateKeys = [
   "timezone",
 ];
 
-const GeneratedSharedStateKeys = ["request_id", "tariff_id"];
+const GeneratedSharedStateKeys = ["request_id", "tariff_id", "device_id"];
 
 const PrivateSharedStateKeys = ["auth_metadata"];
 

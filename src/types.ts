@@ -83,6 +83,7 @@ export interface SharedStateData {
   callback_url?: string;
 
   tariff_id?: string;
+  device_id?: string;
   request_id?: string;
   auth_metadata?: Record<string, unknown>;
 
