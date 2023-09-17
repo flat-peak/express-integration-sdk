@@ -51,9 +51,18 @@ export function createAuthMiddleware<T>(params: ConfigParams<T>) {
       },
     );
 
+    const targetProviderId = provider_id || state.getData().provider_id;
+    if (!targetProviderId) {
+      return respondWithError(
+        req,
+        res,
+        `Please ensure that you pass the 'provider_id' parameter through the state object for this integration.`,
+      );
+    }
+
     return Promise.all([
       flatpeak.accounts.current(),
-      flatpeak.providers.retrieve(provider_id || state.getData().provider_id),
+      flatpeak.providers.retrieve(targetProviderId),
     ])
       .then(([account, provider]) => {
         if (account.object === "error") {
