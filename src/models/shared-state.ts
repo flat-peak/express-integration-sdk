@@ -11,6 +11,7 @@ const InputSharedStateKeys = [
   "client_metadata",
   "devices",
   "timezone",
+  "assisted_provider_url",
 ];
 
 const GeneratedSharedStateKeys = ["request_id", "tariff_id", "device_id"];

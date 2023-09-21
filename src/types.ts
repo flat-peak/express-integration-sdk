@@ -81,6 +81,7 @@ export interface SharedStateData {
   postal_address?: PostalAddress;
   geo_location?: [number, number];
   callback_url?: string;
+  assisted_provider_url?: string;
 
   tariff_id?: string;
   device_id?: string;

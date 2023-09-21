@@ -90,6 +90,9 @@
           ]
         }
       ]
+    },
+    "assisted_provider_url": {
+      "type": "string"
     }
   },
   "required": [
