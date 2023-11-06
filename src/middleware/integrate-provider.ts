@@ -58,7 +58,20 @@ export function integrateProvider<T extends NonNullable<unknown>>(
     const { auth, state, ...credentials } = req.body;
     return providerHooks.authorise(credentials).then(({ success, error }) => {
       if (error || !success) {
-        return respondWithError(req, res, error || "Authorisation failed");
+        const extraParams = pages.auth.params;
+        return Promise.resolve(
+          pages.auth.params &&
+            (typeof extraParams === "function"
+              ? extraParams(req, res)
+              : extraParams),
+        ).then((result) =>
+          res.render(pages.auth.view, {
+            title: pages.auth.title,
+            ...populateTemplate(res.locals as RequestLocals),
+            ...result,
+            error: error || "Authorisation failed",
+          }),
+        );
       }
 
       return respondWithRedirect(req, res, {
