@@ -93,6 +93,9 @@ export async function connectTariff<T extends NonNullable<unknown>>(
           data: auth_metadata,
         },
       },
+      ...(tariff.contract_end_date && {
+        contract_end_date: tariff.contract_end_date,
+      }),
       ...(postalAddress && { postal_address: postalAddress }),
       ...(validGeoLocation && { geo_location }),
     }),
