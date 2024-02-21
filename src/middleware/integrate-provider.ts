@@ -1,13 +1,10 @@
 import { Router } from "express";
-import { connectTariff } from "../helpers/connector";
-import {
-  populateTemplate,
-  respondWithError,
-  respondWithRedirect,
-} from "../helpers/render";
+import { storeAuthMetadata, submitAuthMetadata } from "../helpers/connector";
+import { populateTemplate, respondWithError } from "../helpers/render";
 import { createAuthMiddleware } from "./auth-middleware";
 import { ConfigParams } from "../types";
 import { RequestLocals } from "../locals";
+import { encodeState } from "../helpers/state-validator";
 
 /**
  * Express JS middleware implementing provider integration for Express web apps using FlatPeak API and given ProviderHooks.
@@ -25,23 +22,7 @@ export function integrateProvider<T extends NonNullable<unknown>>(
   const router = Router();
   const authMiddleware = createAuthMiddleware(params);
 
-  router.get("/", (req, res) => {
-    return respondWithError(
-      req,
-      res,
-      "Missing state. Use a POST request with state and auth params.",
-    );
-  });
-
-  router.post("/", authMiddleware, (req, res) => {
-    respondWithRedirect(req, res, {
-      uri: "/auth",
-      auth: req.body.auth,
-      state: res.locals.state,
-    });
-  });
-
-  router.post("/auth", authMiddleware, async (req, res) => {
+  router.get("/", authMiddleware, async (req, res) => {
     const extraParams = pages.auth.params;
     res.render(pages.auth.view, {
       title: pages.auth.title,
@@ -53,42 +34,46 @@ export function integrateProvider<T extends NonNullable<unknown>>(
     });
   });
 
-  router.post("/auth/capture", authMiddleware, (req, res) => {
+  router.post("/auth/capture", authMiddleware, async (req, res) => {
+    const { state } = res.locals;
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { auth, state, ...credentials } = req.body;
-    return providerHooks.authorise(credentials).then(({ success, error }) => {
-      if (error || !success) {
-        const extraParams = pages.auth.params;
-        return Promise.resolve(
-          pages.auth.params &&
-            (typeof extraParams === "function"
-              ? extraParams(req, res)
-              : extraParams),
-        ).then((result) =>
-          res.render(pages.auth.view, {
-            title: pages.auth.title,
-            ...populateTemplate(res.locals as RequestLocals),
-            ...result,
-            error: error || "Authorisation failed",
-          }),
-        );
-      }
+    const {
+      auth: submittedAuth,
+      state: submittedState,
+      ...credentials
+    } = req.body;
 
-      return respondWithRedirect(req, res, {
-        uri: "/share",
-        auth: req.body.auth,
-        state: res.locals.state.extend({ auth_metadata: credentials }),
+    const authorisationResult = await providerHooks.authorise(credentials);
+
+    const { success, error } = authorisationResult;
+
+    if (error || !success) {
+      const extraParams = pages.auth.params;
+      const extras =
+        typeof extraParams === "function"
+          ? await extraParams(req, res)
+          : extraParams;
+      return res.render(pages.auth.view, {
+        title: pages.auth.title,
+        ...populateTemplate(res.locals as RequestLocals),
+        ...extras,
+        error: error || "Authorisation failed",
       });
-    });
+    }
+
+    state.auth_metadata_id = await storeAuthMetadata(
+      credentials,
+      state,
+      appParams,
+    );
+
+    res.redirect(`/share?state=${encodeState(state)}`);
   });
 
-  router.post("/share", authMiddleware, async (req, res) => {
-    if (!res.locals.state.getData().auth_metadata) {
-      return respondWithRedirect(req, res, {
-        uri: "/auth",
-        auth: req.body.auth,
-        state: res.locals.state,
-      });
+  router.get("/share", authMiddleware, async (req, res) => {
+    const { state } = res.locals;
+    if (!res.locals.state.auth_metadata_id) {
+      return res.redirect(`/auth?state=${encodeState(state)}`);
     }
     const extraParams = pages.share.params;
 
@@ -103,43 +88,22 @@ export function integrateProvider<T extends NonNullable<unknown>>(
   });
 
   router.post("/share/capture", authMiddleware, (req, res) => {
-    const stateData = res.locals.state.getData();
-    const credentials = stateData.auth_metadata;
-    if (!credentials) {
-      return respondWithRedirect(req, res, {
-        uri: "/auth",
-        auth: req.body.auth,
-        state: res.locals.state,
-      });
+    const stateData = res.locals.state;
+    if (!res.locals.state.auth_metadata_id) {
+      return res.redirect(`/auth?state=${encodeState(stateData)}`);
     }
 
     try {
-      return providerHooks
-        .authorise(credentials, { state: stateData })
-        .then(({ error, ...reference }) => {
-          if (error) {
-            throw new Error(error);
+      return submitAuthMetadata(stateData, appParams)
+        .then(() => {
+          if (stateData.callback_url) {
+            res.redirect(stateData.callback_url);
+          } else {
+            res.render(pages.success.view, {
+              title: pages.success.title,
+              ...populateTemplate(res.locals as RequestLocals),
+            });
           }
-          return providerHooks.capture(reference, { state: stateData });
-        })
-        .then(({ tariff, postal_address, error }) => {
-          if (error) {
-            throw new Error(error);
-          }
-          return connectTariff<T>(appParams, providerHooks, {
-            publicKey: res.locals.state.getPublicKey(),
-            state: stateData,
-            tariff,
-            postal_address,
-          });
-        })
-        .then((result) => {
-          res.locals.state.extend(result);
-          res.render(pages.success.view, {
-            title: pages.success.title,
-            ...populateTemplate(res.locals as RequestLocals),
-            ...result,
-          });
         })
         .catch((e) => {
           if (logger) {

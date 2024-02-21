@@ -73,20 +73,9 @@ export interface ConfigParams<T> {
 }
 
 export interface SharedStateData {
-  provider_id: string;
-  timezone: string;
-  devices: Array<{ mac: string; reference_id: string }>;
-  product_id?: string;
-  customer_id?: string;
-  postal_address?: PostalAddress;
-  geo_location?: [number, number];
+  session_id: string;
+  publishable_key: string;
   callback_url?: string;
-  assisted_provider_url?: string;
-
-  tariff_id?: string;
-  device_id?: string;
   request_id?: string;
-  auth_metadata?: Record<string, unknown>;
-
-  [key: string]: unknown;
+  auth_metadata_id?: string;
 }

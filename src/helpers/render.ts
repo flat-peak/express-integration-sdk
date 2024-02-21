@@ -1,18 +1,14 @@
-import {
-  Account,
-  getDefaultLanguageAsset,
-  Provider,
-} from "@flat-peak/javascript-sdk";
+import { Account, getDefaultLanguageAsset, Provider } from "@flat-peak/javascript-sdk";
 import { Request, Response } from "express";
-import { SharedState } from "../models/shared-state";
 import { SharedStateData } from "../types";
+import { encodeState } from "./state-validator";
 
 /**
  * @return {Object}
  * @param props
  */
 export function populateTemplate(props: {
-  state: SharedState;
+  state: SharedStateData;
   account: Account;
   provider: Provider;
 }) {
@@ -24,14 +20,10 @@ export function populateTemplate(props: {
     provider.display_settings,
   );
 
-  const { callback_url } = state.getData();
+  const { callback_url } = state;
   return {
     callbackUrl: callback_url,
-
-    Authorisation: state.getAuthorisation(),
-    SharedState: state.toString(),
-    PublicState: state.toPublic().toString(),
-
+    SharedState: encodeState(state),
     ProviderDisplayName: providerLanguageSettings.display_name,
     ProviderPrivacyUrl: providerLanguageSettings.privacy_url,
     ProviderSupportUrl: providerLanguageSettings.support_url,
@@ -53,7 +45,7 @@ export function respondWithError(req: Request, res: Response, error: string) {
   res.status(400).render("error", {
     title: "Error",
     error,
-    callbackUrl: (res.locals.state as SharedState)?.getData().callback_url,
+    callbackUrl: (res.locals.state as SharedStateData)?.callback_url,
   });
 }
 

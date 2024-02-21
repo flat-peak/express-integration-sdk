@@ -1,109 +1,87 @@
-import {
-  Customer,
-  FlatpeakService,
-  PostalAddress,
-  Product,
-  Tariff,
-  throwOnApiError,
-} from "@flat-peak/javascript-sdk";
-import { throwIfError } from "./util";
-import type { AppParams, ProviderHooks, SharedStateData } from "../index";
+import { FlatpeakModule } from "@flat-peak/javascript-sdk";
 
-interface InputParams<T> {
-  publicKey: string;
-  state: SharedStateData;
-  tariff?: T;
-  postal_address?: PostalAddress;
+import type { AppParams, SharedStateData } from "../index";
+
+class AuthMetadataModule extends FlatpeakModule {
+  save(credentials: Record<string, string>) {
+    return this.processRequest(
+      this.performSignedRequest(`${this.host}/auth_metadatas`, {
+        method: "POST",
+        body: JSON.stringify(credentials),
+      }),
+    );
+  }
+
+  addToSession(auth_metadata_id: string, session_id: string) {
+    return this.processRequest(
+      this.performSignedRequest(`${this.host}/v1`, {
+        method: "POST",
+        body: JSON.stringify({
+          action: {
+            data: { auth_metadata: { id: auth_metadata_id } },
+            type: "capture-auth-metadata",
+          },
+          session: {
+            id: session_id,
+          },
+        }),
+      }),
+    );
+  }
 }
 
-/**
- * @param {AppParams} appParams
- * @param {ProviderHooks} providerHooks
- * @param {InputParams} inputParams
- */
-export async function connectTariff<T extends NonNullable<unknown>>(
+export async function storeAuthMetadata(
+  credentials: Record<string, string>,
+  state: SharedStateData,
   appParams: AppParams,
-  providerHooks: ProviderHooks<T>,
-  inputParams: InputParams<T>,
 ) {
-  const {
-    publicKey,
-    state,
-    tariff: providerTariff,
-    postal_address,
-  } = inputParams;
+  const { api_url, logger } = appParams;
+  const { publishable_key } = state;
 
-  const {
-    customer_id,
-    product_id,
-    geo_location,
-    postal_address: fallback_postal_address,
-    provider_id: fallback_provider_id,
-    auth_metadata,
-  } = state;
+  const authMetadataModule = new AuthMetadataModule(
+    {
+      host: api_url,
+      publishableKey: publishable_key,
+      secretKey: "",
 
-  const { api_url, provider_id, logger } = appParams;
-  const { convert } = providerHooks;
-
-  const flatpeak = new FlatpeakService(api_url, publicKey, (message) => {
-    if (logger) {
-      logger.info(`[SERVICE] ${message}`);
-    }
-  });
-
-  const tariffDraft = convert(providerTariff as T);
-  const customer = (await throwOnApiError(
-    customer_id
-      ? flatpeak.customers.retrieve(customer_id)
-      : flatpeak.customers.create({
-          is_disabled: true,
-        }),
-  )) as Customer;
-  let product = (await throwOnApiError(
-    product_id
-      ? flatpeak.products.retrieve(product_id)
-      : flatpeak.products.create({
-          customer_id: customer.id,
-          provider_id: provider_id || fallback_provider_id,
-          timezone: tariffDraft.timezone,
-          is_disabled: true,
-        }),
-  )) as Product;
-  tariffDraft.product_id = product.id;
-
-  const tariff = (await throwIfError(
-    flatpeak.tariffs.create(tariffDraft),
-  )) as Tariff;
-
-  const validGeoLocation =
-    Array.isArray(geo_location) && geo_location.length === 2;
-
-  const postalAddress = postal_address || fallback_postal_address;
-
-  product = (await throwIfError(
-    flatpeak.products.update(product.id, {
-      tariff_settings: {
-        reference_id: tariffDraft.reference_id,
-        is_disabled: false,
-        integrated: true,
-        tariff_id: tariff.id,
-        failed_attempts: 0,
-        auth_metadata: {
-          reference_id: tariffDraft.reference_id,
-          data: auth_metadata,
-        },
+      logger: (message) => {
+        if (logger) {
+          logger.info(`[AUTH_METADATA] ${message}`);
+        }
       },
-      ...(tariff.contract_end_date && {
-        contract_end_date: tariff.contract_end_date,
-      }),
-      ...(postalAddress && { postal_address: postalAddress }),
-      ...(validGeoLocation && { geo_location }),
-    }),
-  )) as Product;
+    },
+    {},
+  );
 
-  return {
-    customer_id: customer.id,
-    product_id: product.id,
-    tariff_id: tariff.id,
-  };
+  const data = await authMetadataModule.save(credentials);
+  return data.id;
+}
+export async function submitAuthMetadata(
+  state: SharedStateData,
+  appParams: AppParams,
+) {
+  const { api_url, logger } = appParams;
+  const { publishable_key } = state;
+
+  const authMetadataModule = new AuthMetadataModule(
+    {
+      host: api_url,
+      publishableKey: publishable_key,
+      secretKey: "",
+
+      logger: (message) => {
+        if (logger) {
+          logger.info(`[AUTH_METADATA] ${message}`);
+        }
+      },
+    },
+    {},
+  );
+
+  const result = await authMetadataModule.addToSession(
+    state.auth_metadata_id || "",
+    state.session_id,
+  );
+
+  return result;
 }

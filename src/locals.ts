@@ -1,8 +1,8 @@
 import { Account, Provider } from "@flat-peak/javascript-sdk";
-import { SharedState } from "./models/shared-state";
+import { SharedStateData } from "./types";
 
 export interface RequestLocals {
-  state: SharedState;
+  state: SharedStateData;
   account: Account;
   provider: Provider;
 }

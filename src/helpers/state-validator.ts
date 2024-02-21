@@ -14,3 +14,7 @@ export const decodeState = (data: string): SharedStateData => {
 
   return state;
 };
+
+export const encodeState = (state: SharedStateData) => {
+  return Buffer.from(JSON.stringify(state)).toString("base64");
+};
