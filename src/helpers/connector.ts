@@ -17,13 +17,10 @@ class AuthMetadataModule extends FlatpeakModule {
       this.performSignedRequest(`${this.host}/v1`, {
         method: "POST",
         body: JSON.stringify({
-          action: {
-            data: { auth_metadata: { id: auth_metadata_id } },
-            type: "capture-auth-metadata",
-          },
-          session: {
-            id: session_id,
-          },
+          route: "auth_metadata_capture",
+          type: "submit",
+          session_id,
+          data: { auth_metadata: { id: auth_metadata_id } },
         }),
       }),
     );
