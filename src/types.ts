@@ -2,24 +2,14 @@ import type { Request, Response } from "express";
 import type { PostalAddress, Tariff } from "@flat-peak/javascript-sdk";
 
 export interface AppParams {
-  provider_id: string;
   api_url: string;
-  logger: {
-    log: (message: string) => void;
-    info: (message: string) => void;
-    error: (message: string) => void;
-  };
 }
 
-export interface CredentialsReference {
-  reference_id?: string;
-  identification?: string;
-}
-
-export interface CredentialsResponse extends CredentialsReference {
+export type CredentialsResponse = {
   success: boolean;
   error: string;
-}
+  data: Record<string, unknown>;
+};
 
 export interface TariffResponse<T> {
   success?: boolean;
@@ -31,16 +21,9 @@ export interface TariffResponse<T> {
 export interface ProviderHooks<T> {
   authorise: (
     credentials: NonNullable<unknown>,
-    params?: { state?: SharedStateData },
   ) => Promise<CredentialsResponse>;
-  capture: (
-    reference: CredentialsReference,
-    params?: { state?: SharedStateData },
-  ) => Promise<TariffResponse<T>>;
-  convert: (
-    tariff: T,
-    params?: { state?: SharedStateData },
-  ) => Tariff & { reference_id?: string };
+  capture: (reference: Record<string, unknown>) => Promise<TariffResponse<T>>;
+  convert: (tariff: T) => Tariff & { reference_id?: string };
   logger?: {
     info: (message: string) => void;
     error: (message: string) => void;
@@ -55,13 +38,7 @@ export interface OnboardPage {
     | ((req: Request, res: Response) => Promise<Record<string, string>>);
 }
 
-export interface OnboardPages {
-  index: OnboardPage;
-  auth: OnboardPage;
-  share: OnboardPage;
-  success: OnboardPage;
-  cancel: OnboardPage;
-}
+export type OnboardPages = Record<string, OnboardPage>;
 
 /**
  * Configuration parameters passed to the `integrateProvider()` middleware.
@@ -72,10 +49,44 @@ export interface ConfigParams<T> {
   providerHooks: ProviderHooks<T>;
 }
 
-export interface SharedStateData {
-  session_id: string;
-  publishable_key: string;
-  callback_url?: string;
-  request_id?: string;
-  auth_metadata_id?: string;
-}
+export type RenderRouteKey = keyof RenderRouteDataMapping;
+export type ContractDirection = "IMPORT" | "EXPORT";
+export type ProviderSummary = {
+  id: string;
+  display_name: string;
+  logo_url: string;
+  accent_color?: string;
+};
+export type AccountSummary = {
+  display_name: string;
+  privacy_url: string;
+  terms_url: string;
+};
+
+export type RouteActionsMapping = {};
+
+export type CommonRenderRoute<T extends RenderRouteKey = RenderRouteKey> = {
+  route: T;
+  connect_token: string;
+  type: "render";
+  live_mode: boolean;
+  direction: ContractDirection;
+  data: RenderRouteDataMapping[T];
+  actions?: T extends keyof RouteActionsMapping
+    ? Array<RouteActionsMapping[T]>
+    : undefined;
+};
+
+export type HasProviderSummaryTrait = {
+  provider: ProviderSummary;
+};
+
+export type HasAccountSummaryTrait = {
+  account: AccountSummary;
+};
+export type AuthMetadataCapture = HasAccountSummaryTrait &
+  HasProviderSummaryTrait;
+
+export type RenderRouteDataMapping = {
+  auth_metadata_capture: AuthMetadataCapture;
+};

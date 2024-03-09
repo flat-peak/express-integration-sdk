@@ -1,61 +1,85 @@
-import { Account, getDefaultLanguageAsset, Provider } from "@flat-peak/javascript-sdk";
 import { Request, Response } from "express";
-import { SharedStateData } from "../types";
-import { encodeState } from "./state-validator";
-
-/**
- * @return {Object}
- * @param props
- */
-export function populateTemplate(props: {
-  state: SharedStateData;
-  account: Account;
-  provider: Provider;
-}) {
-  const { state, account, provider } = props;
-  const accountLanguageSettings = getDefaultLanguageAsset(
-    account.display_settings,
-  );
-  const providerLanguageSettings = getDefaultLanguageAsset(
-    provider.display_settings,
-  );
-
-  const { callback_url } = state;
-  return {
-    callbackUrl: callback_url,
-    SharedState: encodeState(state),
-    ProviderDisplayName: providerLanguageSettings.display_name,
-    ProviderPrivacyUrl: providerLanguageSettings.privacy_url,
-    ProviderSupportUrl: providerLanguageSettings.support_url,
-    ProviderTermsUrl: providerLanguageSettings.support_url,
-    ProviderLogoUrl: providerLanguageSettings.logo_url,
-    ProviderAccentColor:
-      provider.display_settings?.graphic_assets?.accent_color || "#333333",
-
-    ManufacturerDisplayName: accountLanguageSettings.display_name,
-    ManufacturerTermsUrl: accountLanguageSettings.terms_url,
-    ManufacturerPolicyUrl: accountLanguageSettings.privacy_url,
-    ManufacturerLogoUrl: accountLanguageSettings.logo_url,
-    ManufacturerAccentColor:
-      account.display_settings?.graphic_assets?.accent_color || "#333333",
-  };
-}
+import {
+  AppParams,
+  HasAccountSummaryTrait,
+  HasProviderSummaryTrait,
+  OnboardPages,
+} from "../types";
 
 export function respondWithError(req: Request, res: Response, error: string) {
   res.status(400).render("error", {
     title: "Error",
     error,
-    callbackUrl: (res.locals.state as SharedStateData)?.callback_url,
   });
 }
 
-export function respondWithRedirect(
+export async function respondToAction(
+  action: {
+    connect_token: string;
+    route: string;
+    data: HasProviderSummaryTrait &
+      HasAccountSummaryTrait &
+      Record<string, unknown>;
+  },
+  pages: OnboardPages,
+  logger: { info: (message: string) => void },
   req: Request,
   res: Response,
-  params: { uri?: string; auth?: string; state?: SharedStateData },
-) {
-  res.status(302).render("redirect", {
-    title: "Redirect",
-    params,
+): Promise<void> {
+  logger.info(`<- router: ${JSON.stringify(action)}`);
+  const { connect_token, route, data } = action;
+
+  const { account, provider, ...extras } = data || {};
+
+  if (route === "session_redirect") {
+    const { redirect_uri } = data;
+    return res.redirect(redirect_uri as string);
+  }
+
+  const page = pages[route];
+  if (!page) {
+    throw new Error(`Unsupported route - ${route}`);
+  }
+  const extraParams = page.params;
+  return res.render(page.view, {
+    title: page.title,
+    route,
+    connect_token,
+    account,
+    provider,
+    accent_color: provider?.accent_color || "#333333",
+    ...extras,
+    ...(page.params &&
+      (typeof extraParams === "function"
+        ? await extraParams(req, res)
+        : extraParams)),
   });
 }
+
+export const submitAction = async (
+  payload: Record<string, unknown>,
+  appParams: AppParams,
+  pages: OnboardPages,
+  logger: { info: (message: string) => void },
+  req: Request,
+  res: Response,
+): Promise<void> => {
+  try {
+    logger.info(`-> integration: ${JSON.stringify(payload)}`);
+    const actionResponse = await fetch(`${appParams.api_url}`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+    const actionData = await actionResponse.json();
+    if (!actionResponse.ok) {
+      throw new Error(actionData.message || "Fail to submit an action");
+    }
+    await respondToAction(actionData, pages, logger, req, res);
+  } catch (error) {
+    respondWithError(
+      req,
+      res,
+      (error as Error).message || "Something went wrong",
+    );
+  }
+};
