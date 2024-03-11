@@ -75,7 +75,7 @@ export function integrateProvider<T extends NonNullable<unknown>>(
       {
         route: "auth_metadata_capture",
         connect_token: connectToken,
-        data,
+        data: { ...credentials, ...data },
       },
       appParams,
       pages,
