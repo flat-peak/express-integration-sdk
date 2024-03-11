@@ -6,10 +6,18 @@ import {
   OnboardPages,
 } from "../types";
 
-export function respondWithError(req: Request, res: Response, error: string) {
+export function respondWithError(
+  req: Request,
+  res: Response,
+  error: string,
+  meta?: { connect_token: string; route: string },
+) {
+  const { connect_token, route } = meta || {};
   res.status(400).render("error", {
     title: "Error",
     error,
+    connect_token,
+    route,
   });
 }
 
@@ -32,8 +40,8 @@ export async function respondToAction(
   const { account, provider, ...extras } = data || {};
 
   if (route === "session_redirect") {
-    const { redirect_uri } = data;
-    return res.redirect(redirect_uri as string);
+    const { redirect_url } = data;
+    return res.redirect(redirect_url as string);
   }
 
   const page = pages[route];
@@ -80,6 +88,7 @@ export const submitAction = async (
       req,
       res,
       (error as Error).message || "Something went wrong",
+      payload as { connect_token: string; route: string },
     );
   }
 };
